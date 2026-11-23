@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloud Architect Practice Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday learning tool: calm, clear, hands-on
+   IDEA a lab bench: instructions on the left, a console to build with, a live blueprint of what you built
+   PICTURE the live architecture diagram, redrawn from your resources, AZ failure shown in red
+   COLOUR white ground, ink black, network blue, healthy green, failure red, amber for "do this next"
+   TYPE Figtree 800 for titles, Figtree for text
+   LAYOUT laptop: tutorial column left, diagram top-right, console below it; phone: tutorial, diagram, console */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0e1116);--ink:light-dark(#111418,#e9edf2);--mute:light-dark(#5b6470,#9aa4b1);--line:light-dark(#d9dde3,#2a313b);--panel:light-dark(#f5f6f8,#151a21);--blue:light-dark(#0a5cff,#6b98ff);--green:light-dark(#00a05a,#3ccf8a);--red:light-dark(#e6261f,#ff6f66);--amber:light-dark(#ffb400,#ffc640);--tint:light-dark(#eef3ff,#16213a)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-weight:800;line-height:1.1;letter-spacing:-.02em;margin:0}
+h1{font-size:clamp(28px,4vw,40px)}
+h2{font-size:20px}
+h3{font-size:16px}
+.top{display:flex;flex-wrap:wrap;gap:12px 32px;align-items:end;justify-content:space-between;padding:20px max(3vw,16px) 16px;border-bottom:4px solid var(--blue)}
+.top p{margin:6px 0 0;color:var(--mute);max-width:60ch}
+.meter{min-width:220px}
+.meter b{font-size:14px}
+.bar{height:10px;border-radius:5px;background:var(--panel);border:1px solid var(--line);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--green);transition:width .4s}
+.grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:0}
+aside{border-right:1px solid var(--line);padding:16px max(2vw,16px);background:var(--panel)}
+.work{padding:16px max(2vw,16px);display:grid;gap:16px;align-content:start}
+.labs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 16px}
+.labs button{min-height:36px;padding:4px 10px;font-size:14px}
+.labs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.labs button.done::after{content:" ✓";color:var(--green)}
+.steps{list-style:none;padding:0;margin:12px 0;display:grid;gap:6px}
+.steps li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;font-size:15px;align-items:start}
+.dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);margin-top:2px}
+.steps li.ok .dot{background:var(--green);border-color:var(--green)}
+.steps li.now .dot{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 35%,transparent)}
+.steps li.ok span{color:var(--mute)}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card.now{border:2px solid var(--amber)}
+.card p{margin:6px 0}
+.how{margin:8px 0 0;padding-left:20px;font-size:15px}
+.tip{font-size:14px;color:var(--mute);border-top:1px solid var(--line);margin-top:10px;padding-top:8px}
+.fig{position:relative;min-height:440px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.status{position:absolute;right:10px;top:10px;font-size:13px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--panel);border:1px solid var(--line)}
+.status.up{color:var(--green)}
+.status.down{color:var(--red)}
+.console{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tabs{display:flex;flex-wrap:wrap;background:var(--panel);border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-radius:0;background:none;min-height:44px;padding:0 14px;font-weight:600;color:var(--mute)}
+.tabs button.on{color:var(--ink);box-shadow:inset 0 -3px var(--blue)}
+.panel{padding:14px;display:grid;gap:14px}
+.form{display:grid;gap:10px;border:1px solid var(--line);border-radius:8px;padding:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label{display:grid;gap:4px;font-size:14px;font-weight:600}
+label.chk{display:flex;align-items:center;gap:8px;font-weight:400}
+input[type=text],input[type=number],select{font:inherit;font-size:16px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:150px}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--blue)}
+button{font:inherit;font-weight:600;min-height:44px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+button.go{background:var(--blue);border-color:var(--blue);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+button.pulse{box-shadow:0 0 0 4px var(--amber)}
+.log{font-size:14px;padding:10px 14px;border-top:1px solid var(--line);background:var(--panel);min-height:44px}
+.log.err{color:var(--red)}
+.log.warn{color:light-dark(#8a5a00,#ffc640)}
+.log.good{color:var(--green)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.note{font-size:13px;color:var(--mute)}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}aside{border-right:0;border-bottom:1px solid var(--line)}}
+@media(prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Cloud Architect Practice Lab</h1>
+    <p>Build real exam architectures step by step. An unofficial practice simulator: it uses AWS service names and settings, but nothing here touches a real AWS account or costs money.</p>
+  </div>
+  <div class="meter"><b id="prog-t">0 of 0 steps done</b><div class="bar"><i id="prog" style="width:0"></i></div></div>
+</header>
+<div class="grid">
+  <aside>
+    <h2>Labs</h2>
+    <div class="labs" id="labs"></div>
+    <div id="tut"></div>
+    <div class="row" style="margin-top:16px"><button id="reset">Reset everything</button></div>
+  </aside>
+  <section class="work">
+    <div class="fig" id="fig"><svg id="arch" role="img" aria-label="Live diagram of the architecture you have built"></svg><div class="status" id="status">App: not built</div></div>
+    <div class="console">
+      <nav class="tabs" id="tabs"></nav>
+      <div class="panel" id="panel"></div>
+      <div class="log" id="log">Pick a lab on the left, then follow the highlighted step. Stuck? Press “Show me how”.</div>
+    </div>
+  </section>
+</div>
+<script>
+{
+const blank = () => ({vpc:null,igw:false,subnets:[],nat:[],sgs:[],roles:[],alb:null,asg:null,rds:null,bucket:null,topics:[],queues:[],subs:[],failed:null,lab:0,tab:'vpc',n:0});
+let S = blank();
+try { const raw = localStorage.getItem('cloudlab'); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
+const save = () => { try { localStorage.setItem('cloudlab', JSON.stringify(S)); } catch (e) {} };
+const id = p => p + '-' + (++S.n).toString(16).padStart(5, '0');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = q => document.querySelector(q);
+const pub = () => S.subnets.filter(s => s.type === 'public');
+const priv = () => S.subnets.filter(s => s.type === 'private');
+const azs = list => new Set(list.map(id2 => (S.subnets.find(s => s.id === id2) || {}).az));
+const sub = sid => S.subnets.find(s => s.id === sid) || {};
+const s3role = () => S.roles.find(r => r.service === 'EC2' && r.policy === 'AmazonS3ReadOnlyAccess');
+const webSg = () => S.sgs.find(g => g.port === 80 && g.source === '0.0.0.0/0');
+const albOk = () => !!S.alb && S.alb.type === 'Application' && S.alb.subnets.every(x => sub(x).type === 'public') && azs(S.alb.subnets).size >= 2;
+const asgOk = () => !!S.asg && S.asg.subnets.every(x => sub(x).type === 'private') && azs(S.asg.subnets).size >= 2 && S.asg.min >= 2 && !!S.asg.role && S.roles.some(r => r.name === S.asg.role && r.policy === 'AmazonS3ReadOnlyAccess') && S.sgs.some(g => g.name === S.asg.sg && g.port === 80);
+const rdsOk = () => !!S.rds && S.rds.group === 'private' && S.rds.multiAz && !S.rds.publicAccess;
+const survives = () => albOk() && asgOk() && rdsOk();
+
+const LABS = [
+ {title:'1. Network', intro:'Build a VPC with public and private subnets in two Availability Zones.', steps:[
+  {t:'Create a VPC with CIDR 10.0.0.0/16', tab:'vpc', how:['Open the VPC tab.','In “Create VPC”, type 10.0.0.0/16.','Press Create VPC.'], fill:{'vpc-cidr':'10.0.0.0/16'}, btn:'b-vpc', ok:()=>!!S.vpc, tip:'A /16 gives you 65,536 addresses to split into subnets.'},
+  {t:'Create a public subnet in AZ a and another in AZ b', tab:'vpc', how:['In “Create subnet”, choose AZ a and type Public, CIDR 10.0.1.0/24, press Create subnet.','Repeat with AZ b and CIDR 10.0.2.0/24.'], fill:()=>{const az=pub().some(s=>s.az==='a')?'b':'a';return {'sn-az':az,'sn-type':'public','sn-cidr':az==='a'?'10.0.1.0/24':'10.0.2.0/24'};}, btn:'b-sn', ok:()=>pub().some(s=>s.az==='a')&&pub().some(s=>s.az==='b'), tip:'Two AZs, always. One AZ is the classic wrong answer.'},
+  {t:'Create a private subnet in AZ a and another in AZ b', tab:'vpc', how:['Choose AZ a, type Private, CIDR 10.0.11.0/24, press Create subnet.','Repeat with AZ b and CIDR 10.0.12.0/24.'], fill:()=>{const az=priv().some(s=>s.az==='a')?'b':'a';return {'sn-az':az,'sn-type':'private','sn-cidr':az==='a'?'10.0.11.0/24':'10.0.12.0/24'};}, btn:'b-sn', ok:()=>priv().some(s=>s.az==='a')&&priv().some(s=>s.az==='b'), tip:'Servers and databases live here, out of reach of the internet.'},
+  {t:'Attach an Internet Gateway', tab:'vpc', how:['Press Create and attach Internet Gateway.'], btn:'b-igw', ok:()=>S.igw, tip:'Without it, nothing in the VPC can reach the internet at all.'},
+  {t:'Create a NAT Gateway in a public subnet', tab:'vpc', how:['In “NAT Gateway”, choose one of your public subnets.','Press Create NAT Gateway.'], btn:'b-nat', ok:()=>S.nat.length>0, tip:'Exam: private servers need updates but must not be reachable → NAT Gateway in a public subnet.'}]},
+ {title:'2. Security', intro:'Set up a firewall rule and a role, using least privilege.', steps:[
+  {t:'Create security group “web-sg” allowing port 80 from 0.0.0.0/0', tab:'ec2', how:['Open the EC2 tab.','In “Security group”, name it web-sg, port 80, source 0.0.0.0/0.','Press Create security group.'], fill:{'sg-name':'web-sg','sg-port':'80','sg-src':'0.0.0.0/0'}, btn:'b-sg', ok:()=>!!webSg(), tip:'Security groups only allow. To block one IP you need a network ACL.'},
+  {t:'Create an IAM role for EC2 with S3 read-only access', tab:'iam', how:['Open the IAM tab.','Name the role ec2-s3-read, trusted service EC2, policy AmazonS3ReadOnlyAccess.','Press Create role.'], fill:{'r-name':'ec2-s3-read','r-svc':'EC2','r-pol':'AmazonS3ReadOnlyAccess'}, btn:'b-role', ok:()=>!!s3role(), tip:'Exam: an app needs S3 → IAM role. Never access keys on the server.'}]},
+ {title:'3. Web tier', intro:'Put a load balancer in front of servers spread across two AZs.', steps:[
+  {t:'Create an Application Load Balancer in both public subnets', tab:'ec2', how:['In “Load balancer”, choose type Application.','Tick both public subnets (AZ a and AZ b).','Press Create load balancer.'], fill:{'lb-type':'Application'}, tickType:'public', tickPrefix:'lb-', btn:'b-lb', ok:albOk, tip:'Load balancers face the internet, so they go in public subnets.'},
+  {t:'Create an Auto Scaling group: private subnets, minimum 2, with your role and web-sg', tab:'ec2', how:['In “Auto Scaling group”, tick both private subnets.','Set minimum to 2, pick role ec2-s3-read and security group web-sg.','Press Create Auto Scaling group.'], fill:{'asg-min':'2'}, tickType:'private', tickPrefix:'asg-', btn:'b-asg', ok:asgOk, tip:'Minimum 2 across 2 AZs means one AZ can fail and a server is still running.'}]},
+ {title:'4. Database', intro:'Add a database that survives an AZ failure, plus a copy for reports.', steps:[
+  {t:'Create an RDS database in the private subnets with Multi-AZ on', tab:'rds', how:['Open the RDS tab.','Subnet group: private subnets. Tick Multi-AZ. Leave public access off.','Press Create database.'], fill:{'db-group':'private'}, ticks:{'db-multi':true,'db-public':false}, btn:'b-db', ok:rdsOk, tip:'Multi-AZ = a standby copy in another AZ with automatic failover.'},
+  {t:'Add a read replica for reporting', tab:'rds', how:['Press Create read replica.'], btn:'b-rep', ok:()=>!!S.rds&&S.rds.replica, tip:'Read replica = speed for reads. Multi-AZ = safety. Different jobs.'}]},
+ {title:'5. Storage', intro:'Create a private bucket that moves old files to cheaper storage.', steps:[
+  {t:'Create an S3 bucket with Block Public Access on', tab:'s3', how:['Open the S3 tab.','Type a bucket name, e.g. lab-media-files. Keep Block all public access ticked.','Press Create bucket.'], fill:{'bk-name':'lab-media-files'}, ticks:{'bk-block':true}, btn:'b-bk', ok:()=>!!S.bucket&&S.bucket.block, tip:'Bucket names must be unique across all of AWS.'},
+  {t:'Add a lifecycle rule: Standard-IA after 30 days, Glacier after 90', tab:'s3', how:['In “Lifecycle rule”, set Standard-IA to 30 and Glacier to 90.','Press Add rule.'], fill:{'lc-ia':'30','lc-gl':'90'}, btn:'b-lc', ok:()=>!!S.bucket&&S.bucket.life&&S.bucket.life.ia===30&&S.bucket.life.gl===90, tip:'Exam: “move old data to cheaper storage automatically” → lifecycle rule.'}]},
+ {title:'6. Decoupling', intro:'Send one message to two systems that each work at their own pace.', steps:[
+  {t:'Create an SNS topic called new-order', tab:'msg', how:['Open the SNS and SQS tab.','Type new-order and press Create topic.'], fill:{'tp-name':'new-order'}, btn:'b-tp', ok:()=>S.topics.length>0, tip:'SNS pushes one message to many subscribers.'},
+  {t:'Create two SQS queues: payments and emails', tab:'msg', how:['Type payments and press Create queue.','Type emails and press Create queue.'], fill:()=>({'q-name':S.queues.includes('payments')?'emails':'payments'}), btn:'b-q', ok:()=>S.queues.length>=2, tip:'Queues hold messages until the app is ready, so nothing is lost.'},
+  {t:'Subscribe both queues to the topic', tab:'msg', how:['In “Subscribe”, pick the topic and a queue, press Subscribe.','Repeat for the second queue.'], btn:'b-sub', ok:()=>new Set(S.subs.map(x=>x.q)).size>=2, tip:'This is the SNS → SQS fan-out pattern.'}]},
+ {title:'7. Chaos test', intro:'Break an Availability Zone and see if your design survives.', steps:[
+  {t:'Fail AZ a and keep the app running', tab:'test', how:['Open the Test tab.','Press Fail AZ a.','If the app goes down, the checklist shows what to fix.'], btn:'b-fail', ok:()=>S.failed==='a'&&survives(), tip:'This is exactly what “highly available” means on the exam.'}]}
+];
+const all = LABS.flatMap(l => l.steps);
+const labDone = l => l.steps.every(s => s.ok());
+const curStep = () => LABS[S.lab].steps.find(s => !s.ok());
+
+const TABS = [['vpc','VPC'],['ec2','EC2'],['iam','IAM'],['rds','RDS'],['s3','S3'],['msg','SNS and SQS'],['test','Test']];
+let pre = null;
+
+function opts(list, sel) { return list.map(([v, t]) => `<option value="${esc(v)}"${v === sel ? ' selected' : ''}>${esc(t)}</option>`).join(''); }
+function subnetTicks(prefix) {
+  if (!S.subnets.length) return '<p class="note">No subnets yet. Build them in Lab 1.</p>';
+  return S.subnets.map(s => `<label class="chk"><input type="checkbox" id="${prefix}${s.id}" data-sid="${s.id}"> ${esc(s.name)} · AZ ${s.az} · ${s.type}</label>`).join('');
+}
+const PANELS = {
+ vpc: () => `
+  <div class="form"><h3>Create VPC</h3>${S.vpc ? `<p>VPC <b>${S.vpc.id}</b> · ${esc(S.vpc.cidr)}</p>` : `<div class="row"><label>IPv4 CIDR<input type="text" id="vpc-cidr" placeholder="10.0.0.0/16"></label><button class="go" id="b-vpc">Create VPC</button></div>`}</div>
+  <div class="form"><h3>Create subnet</h3><div class="row"><label>Availability Zone<select id="sn-az">${opts([['a','AZ a'],['b','AZ b']])}</select></label><label>Type<select id="sn-type">${opts([['public','Public'],['private','Private']])}</select></label><label>CIDR<input type="text" id="sn-cidr" placeholder="10.0.1.0/24"></label><button class="go" id="b-sn">Create subnet</button></div>
+  ${S.subnets.length ? `<div class="scroll"><table><tr><th>Subnet</th><th>AZ</th><th>Type</th><th>CIDR</th></tr>${S.subnets.map(s => `<tr><td>${esc(s.name)}</td><td>${s.az}</td><td>${s.type}</td><td>${esc(s.cidr)}</td></tr>`).join('')}</table></div>` : ''}</div>
+  <div class="form"><h3>Internet Gateway</h3>${S.igw ? '<p>Attached to your VPC.</p>' : '<div class="row"><button class="go" id="b-igw">Create and attach Internet Gateway</button></div>'}</div>
+  <div class="form"><h3>NAT Gateway</h3><div class="row"><label>Subnet<select id="nat-sn">${opts(S.subnets.map(s => [s.id, `${s.name} (AZ ${s.az}, ${s.type})`]))}</select></label><button class="go" id="b-nat">Create NAT Gateway</button></div>${S.nat.length ? `<p class="note">NAT Gateways in: ${S.nat.map(x => esc(sub(x).name)).join(', ')}</p>` : ''}</div>`,
+ ec2: () => `
+  <div class="form"><h3>Security group</h3><div class="row"><label>Name<input type="text" id="sg-name" placeholder="web-sg"></label><label>Allow port<select id="sg-port">${opts([['80','80 (HTTP)'],['443','443 (HTTPS)'],['22','22 (SSH)'],['3306','3306 (MySQL)']])}</select></label><label>From source<input type="text" id="sg-src" placeholder="0.0.0.0/0"></label><button class="go" id="b-sg">Create security group</button></div>${S.sgs.length ? `<p class="note">${S.sgs.map(g => `${esc(g.name)}: port ${g.port} from ${esc(g.source)}`).join(' · ')}</p>` : ''}</div>
+  <div class="form"><h3>Load balancer</h3><label>Type<select id="lb-type">${opts([['Application','Application (HTTP/HTTPS)'],['Network','Network (TCP/UDP)']])}</select></label><div>${subnetTicks('lb-')}</div><div class="row"><button class="go" id="b-lb">Create load balancer</button></div>${S.alb ? `<p class="note">${S.alb.type} load balancer in ${S.alb.subnets.map(x => esc(sub(x).name)).join(', ')}</p>` : ''}</div>
+  <div class="form"><h3>Auto Scaling group</h3><div>${subnetTicks('asg-')}</div><div class="row"><label>Minimum servers<input type="number" id="asg-min" min="1" max="6" value="1"></label><label>IAM role<select id="asg-role">${opts([['','None'], ...S.roles.map(r => [r.name, r.name])])}</select></label><label>Security group<select id="asg-sg">${opts([['','None'], ...S.sgs.map(g => [g.name, g.name])])}</select></label></div><div class="row"><button class="go" id="b-asg">Create Auto Scaling group</button></div>${S.asg ? `<p class="note">Group running ${S.asg.min}+ servers in ${S.asg.subnets.map(x => esc(sub(x).name)).join(', ')}</p>` : ''}</div>`,
+ iam: () => `
+  <div class="form"><h3>Create role</h3><div class="row"><label>Role name<input type="text" id="r-name" placeholder="ec2-s3-read"></label><label>Trusted service<select id="r-svc">${opts([['EC2','EC2'],['Lambda','Lambda']])}</select></label><label>Policy<select id="r-pol">${opts([['AmazonS3ReadOnlyAccess','AmazonS3ReadOnlyAccess'],['AmazonS3FullAccess','AmazonS3FullAccess'],['AdministratorAccess','AdministratorAccess']])}</select></label><button class="go" id="b-role">Create role</button></div>${S.roles.length ? `<p class="note">${S.roles.map(r => `${esc(r.name)} (${r.service}, ${r.policy})`).join(' · ')}</p>` : ''}</div>`,
+ rds: () => `
+  <div class="form"><h3>Create database</h3>${S.rds ? `<p>Database <b>${S.rds.id}</b> · ${S.rds.group} subnets · Multi-AZ ${S.rds.multiAz ? 'on' : 'off'} · public access ${S.rds.publicAccess ? 'on' : 'off'}</p><div class="row"><button id="b-dbdel">Delete and recreate</button></div>` : `<div class="row"><label>Engine<select id="db-eng">${opts([['MySQL','MySQL'],['PostgreSQL','PostgreSQL']])}</select></label><label>Subnet group<select id="db-group">${opts([['public','Public subnets'],['private','Private subnets']])}</select></label></div><label class="chk"><input type="checkbox" id="db-multi"> Multi-AZ deployment (standby in another AZ)</label><label class="chk"><input type="checkbox" id="db-public"> Public access</label><div class="row"><button class="go" id="b-db">Create database</button></div>`}</div>
+  <div class="form"><h3>Read replica</h3>${S.rds && S.rds.replica ? '<p>Read replica running.</p>' : '<div class="row"><button class="go" id="b-rep">Create read replica</button></div>'}</div>`,
+ s3: () => `
+  <div class="form"><h3>Create bucket</h3>${S.bucket ? `<p>Bucket <b>${esc(S.bucket.name)}</b> · public access ${S.bucket.block ? 'blocked' : 'allowed'}</p>` : `<div class="row"><label>Bucket name<input type="text" id="bk-name" placeholder="lab-media-files"></label></div><label class="chk"><input type="checkbox" id="bk-block" checked> Block all public access</label><div class="row"><button class="go" id="b-bk">Create bucket</button></div>`}</div>
+  <div class="form"><h3>Lifecycle rule</h3><div class="row"><label>Move to Standard-IA after (days)<input type="number" id="lc-ia" min="30" value="30"></label><label>Move to Glacier after (days)<input type="number" id="lc-gl" min="1" value="60"></label><button class="go" id="b-lc">Add rule</button></div>${S.bucket && S.bucket.life ? `<p class="note">Rule: Standard-IA after ${S.bucket.life.ia} days, Glacier after ${S.bucket.life.gl} days.</p>` : ''}</div>`,
+ msg: () => `
+  <div class="form"><h3>SNS topic</h3><div class="row"><label>Topic name<input type="text" id="tp-name" placeholder="new-order"></label><button class="go" id="b-tp">Create topic</button></div>${S.topics.length ? `<p class="note">Topics: ${S.topics.map(esc).join(', ')}</p>` : ''}</div>
+  <div class="form"><h3>SQS queue</h3><div class="row"><label>Queue name<input type="text" id="q-name" placeholder="payments"></label><button class="go" id="b-q">Create queue</button></div>${S.queues.length ? `<p class="note">Queues: ${S.queues.map(esc).join(', ')}</p>` : ''}</div>
+  <div class="form"><h3>Subscribe</h3><div class="row"><label>Topic<select id="sub-t">${opts(S.topics.map(t => [t, t]))}</select></label><label>Queue<select id="sub-q">${opts(S.queues.map(q => [q, q]))}</select></label><button class="go" id="b-sub">Subscribe</button></div>${S.subs.length ? `<p class="note">${S.subs.map(x => `${esc(x.t)} → ${esc(x.q)}`).join(' · ')}</p>` : ''}</div>`,
+ test: () => {
+  const c = [['Load balancer: Application type, public subnets, 2 AZs', albOk()], ['Auto Scaling: private subnets, 2 AZs, minimum 2, role and web-sg', asgOk()], ['Database: private, Multi-AZ, no public access', rdsOk()]];
+  return `<div class="form"><h3>Availability Zone failure</h3><p>Simulate a whole AZ going offline, like a power cut in one data centre.</p><div class="row"><button class="go" id="b-fail">Fail AZ a</button><button id="b-failb">Fail AZ b</button><button id="b-heal">Restore all AZs</button></div>
+  <div class="scroll"><table><tr><th>Survival check</th><th>Result</th></tr>${c.map(([t, ok]) => `<tr><td>${t}</td><td style="color:var(--${ok ? 'green' : 'red'})">${ok ? 'Pass' : 'Fix this'}</td></tr>`).join('')}</table></div></div>`;
+ }
+};
+
+function say(msg, kind) { const l = $('#log'); l.textContent = msg; l.className = 'log ' + (kind || ''); }
+function val(i) { const e = document.getElementById(i); return e ? e.value.trim() : ''; }
+function ticked(prefix) { return [...document.querySelectorAll(`input[id^="${prefix}"][data-sid]`)].filter(e => e.checked).map(e => e.dataset.sid); }
+const cidrOk = c => /^\d{1,3}(\.\d{1,3}){3}\/\d{1,2}$/.test(c);
+
+const ACT = {
+ 'b-vpc'() { const c = val('vpc-cidr'); if (!cidrOk(c)) return say('Enter a CIDR block like 10.0.0.0/16.', 'err'); S.vpc = {id: id('vpc'), cidr: c}; say(`Created VPC ${S.vpc.id} (${c}).`, 'good'); },
+ 'b-sn'() { if (!S.vpc) return say('Create a VPC first.', 'err'); const c = val('sn-cidr'); if (!cidrOk(c)) return say('Enter a subnet CIDR like 10.0.1.0/24.', 'err'); if (S.subnets.some(s => s.cidr === c)) return say('That CIDR is already used by another subnet. Pick a different one.', 'err'); const az = val('sn-az'), type = val('sn-type'); const s = {id: id('subnet'), az, type, cidr: c, name: `${type}-${az}`}; if (S.subnets.some(x => x.name === s.name)) s.name += '-' + S.n; S.subnets.push(s); say(`Created ${type} subnet ${s.name} in AZ ${az}.`, 'good'); },
+ 'b-igw'() { if (!S.vpc) return say('Create a VPC first.', 'err'); S.igw = true; say('Internet Gateway attached. Public subnets can now reach the internet.', 'good'); },
+ 'b-nat'() { const sid = val('nat-sn'); if (!sid) return say('Create a subnet first.', 'err'); if (sub(sid).type !== 'public') return say('A NAT Gateway must sit in a PUBLIC subnet, or it can’t reach the internet. Pick a public one.', 'err'); if (!S.igw) return say('Attach an Internet Gateway first: the NAT Gateway sends traffic out through it.', 'err'); if (!S.nat.includes(sid)) S.nat.push(sid); say(`NAT Gateway created in ${sub(sid).name}.`, 'good'); },
+ 'b-sg'() { const name = val('sg-name'), src = val('sg-src'); if (!name || !src) return say('Give the group a name and a source (0.0.0.0/0 means anyone).', 'err'); S.sgs = S.sgs.filter(g => g.name !== name); S.sgs.push({name, port: +val('sg-port'), source: src}); say(`Security group ${name} allows port ${val('sg-port')} from ${src}.`, 'good'); },
+ 'b-role'() { const name = val('r-name'); if (!name) return say('Give the role a name.', 'err'); const pol = val('r-pol'); S.roles = S.roles.filter(r => r.name !== name); S.roles.push({name, service: val('r-svc'), policy: pol}); if (pol !== 'AmazonS3ReadOnlyAccess') say(`Role ${name} created, but ${pol} gives far more than read access. On the exam that breaks least privilege.`, 'warn'); else say(`Role ${name} created with read-only S3 access. That’s least privilege.`, 'good'); },
+ 'b-lb'() { const sids = ticked('lb-'); if (!sids.length) return say('Tick at least one subnet.', 'err'); S.alb = {type: val('lb-type'), subnets: sids}; if (sids.some(x => sub(x).type !== 'public')) say('Created, but a load balancer in a private subnet can’t be reached from the internet. Use the public subnets.', 'warn'); else if (azs(sids).size < 2) say('Created, but it’s only in one AZ. If that AZ fails, so does your site.', 'warn'); else if (S.alb.type !== 'Application') say('Created a Network Load Balancer. For a website, the exam answer is an Application Load Balancer.', 'warn'); else say('Application Load Balancer created across two AZs.', 'good'); },
+ 'b-asg'() { const sids = ticked('asg-'); if (!sids.length) return say('Tick at least one subnet.', 'err'); S.asg = {subnets: sids, min: Math.max(1, +val('asg-min') || 1), role: val('asg-role'), sg: val('asg-sg')}; if (asgOk()) return say(`Auto Scaling group created: ${S.asg.min} servers across two AZs.`, 'good'); const p = []; if (sids.some(x => sub(x).type !== 'private')) p.push('servers should be in private subnets'); if (azs(sids).size < 2) p.push('pick subnets in both AZs'); if (S.asg.min < 2) p.push('minimum should be 2 so each AZ has a server'); if (!S.roles.some(r => r.name === S.asg.role && r.policy === 'AmazonS3ReadOnlyAccess')) p.push('attach the S3 read-only role'); if (!S.sgs.some(g => g.name === S.asg.sg && g.port === 80)) p.push('attach web-sg'); say('Created, but: ' + p.join('; ') + '.', 'warn'); },
+ 'b-db'() { if (!priv().length && val('db-group') === 'private') return say('Create private subnets first (Lab 1).', 'err'); S.rds = {id: id('db'), group: val('db-group'), multiAz: document.getElementById('db-multi').checked, publicAccess: document.getElementById('db-public').checked, replica: false}; if (rdsOk()) say('Database created in private subnets with a Multi-AZ standby.', 'good'); else say('Created, but ' + [S.rds.group !== 'private' ? 'a database belongs in private subnets' : '', !S.rds.multiAz ? 'without Multi-AZ it dies with its AZ' : '', S.rds.publicAccess ? 'public access exposes it to the internet' : ''].filter(Boolean).join('; ') + '. Press Delete and recreate to fix.', 'warn'); },
+ 'b-dbdel'() { S.rds = null; say('Database deleted. Create it again with the right settings.'); },
+ 'b-rep'() { if (!S.rds) return say('Create the database first.', 'err'); S.rds.replica = true; say('Read replica created. Point reports at it to take load off the main database.', 'good'); },
+ 'b-bk'() { const n = val('bk-name').toLowerCase(); if (!/^[a-z0-9][a-z0-9.-]{2,62}$/.test(n)) return say('Bucket names: 3–63 characters, lowercase letters, numbers, dots and hyphens.', 'err'); S.bucket = {name: n, block: document.getElementById('bk-block').checked, life: null}; say(S.bucket.block ? `Bucket ${n} created, private by default.` : `Bucket ${n} created, but it’s public. Only do that for a public website.`, S.bucket.block ? 'good' : 'warn'); },
+ 'b-lc'() { if (!S.bucket) return say('Create a bucket first.', 'err'); const ia = +val('lc-ia'), gl = +val('lc-gl'); if (ia < 30) return say('S3 needs files to stay at least 30 days in Standard before moving to Standard-IA.', 'err'); if (gl <= ia) return say('Glacier should come after Standard-IA: use a bigger number.', 'err'); S.bucket.life = {ia, gl}; say(`Lifecycle rule saved: Standard-IA after ${ia} days, Glacier after ${gl}.`, 'good'); },
+ 'b-tp'() { const n = val('tp-name'); if (!n) return say('Name the topic.', 'err'); if (!S.topics.includes(n)) S.topics.push(n); say(`SNS topic ${n} created.`, 'good'); },
+ 'b-q'() { const n = val('q-name'); if (!n) return say('Name the queue.', 'err'); if (!S.queues.includes(n)) S.queues.push(n); say(`SQS queue ${n} created.`, 'good'); },
+ 'b-sub'() { const t = val('sub-t'), q = val('sub-q'); if (!t || !q) return say('Create a topic and a queue first.', 'err'); if (!S.subs.some(x => x.t === t && x.q === q)) S.subs.push({t, q}); say(`${q} now receives every message sent to ${t}.`, 'good'); },
+ 'b-fail'() { S.failed = 'a'; say(survives() ? 'AZ a is down. Your app is still running from AZ b. That’s high availability.' : 'AZ a is down and your app went down with it. The checklist shows what to fix.', survives() ? 'good' : 'err'); },
+ 'b-failb'() { S.failed = 'b'; say(survives() ? 'AZ b is down. Still running from AZ a.' : 'AZ b is down and so is your app. See the checklist.', survives() ? 'good' : 'err'); },
+ 'b-heal'() { S.failed = null; say('All AZs restored.'); }
+};
+
+function renderTut() {
+  $('#labs').innerHTML = LABS.map((l, i) => `<button data-lab="${i}" class="${i === S.lab ? 'on' : ''} ${labDone(l) ? 'done' : ''}">${esc(l.title)}</button>`).join('');
+  const L = LABS[S.lab], cur = curStep();
+  $('#tut').innerHTML = `<h2>${esc(L.title)}</h2><p>${esc(L.intro)}</p><ol class="steps">${L.steps.map(s => `<li class="${s.ok() ? 'ok' : s === cur ? 'now' : ''}"><i class="dot"></i><span>${esc(s.t)}</span></li>`).join('')}</ol>` +
+   (cur ? `<div class="card now"><h3>Next: ${esc(cur.t)}</h3><ol class="how">${cur.how.map(h => `<li>${esc(h)}</li>`).join('')}</ol><div class="row" style="margin-top:10px"><button class="go" id="showme">Show me how</button></div><p class="tip">Exam tip: ${esc(cur.tip)}</p></div>`
+        : `<div class="card"><h3>Lab complete</h3><p>${S.lab < LABS.length - 1 ? 'Nice work. Move on to the next lab.' : 'You’ve built a highly available, decoupled architecture. That’s the core of the exam.'}</p>${S.lab < LABS.length - 1 ? '<div class="row"><button class="go" id="nextlab">Next lab</button></div>' : ''}</div>`);
+  const d = all.filter(s => s.ok()).length;
+  $('#prog-t').textContent = `${d} of ${all.length} steps done`;
+  $('#prog').style.width = (100 * d / all.length) + '%';
+}
+function renderConsole() {
+  $('#tabs').innerHTML = TABS.map(([k, t]) => `<button data-tab="${k}" class="${k === S.tab ? 'on' : ''}">${t}</button>`).join('');
+  $('#panel').innerHTML = PANELS[S.tab]();
+  if (pre && pre.tab === S.tab) {
+    const st = pre.step;
+    Object.entries((typeof st.fill === 'function' ? st.fill() : st.fill) || {}).forEach(([k, v]) => { const e = document.getElementById(k); if (e) e.value = v; });
+    Object.entries(st.ticks || {}).forEach(([k, v]) => { const e = document.getElementById(k); if (e) e.checked = v; });
+    if (st.tickType) document.querySelectorAll(`input[id^="${st.tickPrefix}"][data-sid]`).forEach(e => { e.checked = sub(e.dataset.sid).type === st.tickType; });
+    if (st.tickPrefix === 'asg-') { const r = s3role(), g = webSg(); if (r) document.getElementById('asg-role').value = r.name; if (g) document.getElementById('asg-sg').value = g.name; }
+    if (st.btn === 'b-nat') { const p = pub()[0]; if (p) document.getElementById('nat-sn').value = p.id; }
+    if (st.btn === 'b-sub') { const done = new Set(S.subs.map(x => x.q)); const q = S.queues.find(x => !done.has(x)); if (q) document.getElementById('sub-q').value = q; }
+    const b = document.getElementById(st.btn); if (b) { b.classList.add('pulse'); b.focus({preventScroll: false}); }
+    pre = null;
+  }
+}
+function renderStatus() {
+  const el = $('#status'), built = S.alb && S.asg && S.rds;
+  if (!built) { el.textContent = 'App: not built yet'; el.className = 'status'; return; }
+  const up = S.failed ? survives() : true;
+  el.textContent = up ? (S.failed ? `App: running (AZ ${S.failed} down)` : 'App: running') : `App: DOWN (AZ ${S.failed} failed)`;
+  el.className = 'status ' + (up ? 'up' : 'down');
+}
+
+const svg = $('#arch');
+function box(x, y, w, h, label, sub2, cls) {
+  const col = {net: 'var(--blue)', ok: 'var(--green)', bad: 'var(--red)', mute: 'var(--line)'}[cls || 'net'];
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="var(--bg)" stroke="${col}" stroke-width="1.6"/><text x="${x + w / 2}" y="${y + (sub2 ? h / 2 - 2 : h / 2 + 5)}" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">${label}</text>${sub2 ? `<text x="${x + w / 2}" y="${y + h / 2 + 14}" text-anchor="middle" font-size="11.5" fill="var(--mute)">${sub2}</text>` : ''}`;
+}
+function line(x1, y1, x2, y2, c) { return `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c || 'var(--mute)'}" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>`; }
+function draw() {
+  const W = svg.clientWidth, H = svg.clientHeight; if (!W) return;
+  const narrow = W < 620, side = narrow ? 0 : Math.min(200, W * 0.28);
+  const vw = W - side - 24, vx = 12, top = 96, rows = narrow ? H - top - 130 : H - top - 16;
+  let o = `<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--mute)"/></marker><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="color-mix(in srgb, var(--red) 10%, transparent)"/><line x1="0" y1="0" x2="0" y2="8" stroke="var(--red)" stroke-width="2" opacity=".35"/></pattern></defs>`;
+  const cx = vx + vw / 2;
+  o += box(cx - 60, 12, 120, 30, 'Internet', '', 'mute');
+  o += S.igw ? box(cx - 75, 54, 150, 28, 'Internet Gateway', '', 'net') + line(cx, 42, cx, 54) : `<text x="${cx}" y="72" text-anchor="middle" font-size="12" fill="var(--mute)">no Internet Gateway yet</text>`;
+  if (!S.vpc) {
+    o += `<rect x="${vx}" y="${top}" width="${vw}" height="${rows}" rx="10" fill="none" stroke="var(--line)" stroke-dasharray="6 6"/><text x="${cx}" y="${top + rows / 2}" text-anchor="middle" font-size="15" font-weight="600" fill="var(--mute)">No VPC yet. Start with Lab 1.</text>`;
+  } else {
+    o += `<rect x="${vx}" y="${top}" width="${vw}" height="${rows}" rx="10" fill="none" stroke="var(--blue)" stroke-width="2"/><text x="${vx + 12}" y="${top + 20}" font-size="13" font-weight="700" fill="var(--blue)">VPC ${esc(S.vpc.cidr)}</text>`;
+    const colW = (vw - 36) / 2, rowTop = top + 32, rh = (rows - 44) / 3;
+    ['a', 'b'].forEach((az, i) => {
+      const x = vx + 12 + i * (colW + 12), down = S.failed === az;
+      o += `<rect x="${x}" y="${rowTop}" width="${colW}" height="${rows - 40}" rx="8" fill="none" stroke="var(--line)"/><text x="${x + 10}" y="${rowTop + 16}" font-size="12" font-weight="600" fill="var(--ink)">AZ ${az}</text>`;
+      const kinds = [['public', 'Public subnet'], ['private', 'Private subnet: servers'], ['data', 'Private subnet: database']];
+      kinds.forEach(([k, lab], r) => {
+        const y = rowTop + 22 + r * rh, has = S.subnets.some(s => s.az === az && s.type === (k === 'public' ? 'public' : 'private'));
+        o += `<rect x="${x + 6}" y="${y}" width="${colW - 12}" height="${rh - 8}" rx="6" fill="${has ? 'var(--tint)' : 'none'}" stroke="${has ? 'none' : 'var(--line)'}" stroke-dasharray="${has ? '' : '4 4'}"/><text x="${x + 14}" y="${y + 14}" font-size="11.5" fill="var(--mute)">${has ? lab : lab + ' (missing)'}</text>`;
+        const bw = Math.min(130, (colW - 36) / 2), by = y + 22, bh = Math.max(24, Math.min(40, rh - 34));
+        if (k === 'public') {
+          if (S.alb && azs(S.alb.subnets).has(az) && S.alb.subnets.some(x2 => sub(x2).az === az && sub(x2).type === 'public')) o += box(x + 12, by, bw, bh, 'Load balancer', '', down ? 'bad' : 'ok');
+          if (S.nat.some(n => sub(n).az === az)) o += box(x + colW - 12 - bw, by, bw, bh, 'NAT Gateway', '', down ? 'bad' : 'net');
+        }
+        if (k === 'private' && S.asg && S.asg.subnets.some(x2 => sub(x2).az === az)) {
+          const cnt = Math.max(1, Math.ceil(S.asg.min / azs(S.asg.subnets).size));
+          const ew = Math.min(64, (colW - 24 - (cnt - 1) * 8) / cnt);
+          for (let j = 0; j < cnt; j++) o += box(x + 12 + j * (ew + 8), by, ew, bh, 'EC2', '', down ? 'bad' : 'ok');
+        }
+        if (k === 'data' && S.rds) {
+          const primary = az === 'a' || (!S.rds.multiAz && false);
+          if (az === 'a') o += box(x + 12, by, bw, bh, 'RDS primary', '', down ? 'bad' : 'ok');
+          if (az === 'b' && S.rds.multiAz) o += box(x + 12, by, bw, bh, down ? 'RDS standby' : (S.failed === 'a' ? 'RDS (now primary)' : 'RDS standby'), '', down ? 'bad' : 'net');
+          if (az === 'b' && S.rds.replica) o += box(x + colW - 12 - bw, by, bw, bh, 'Read replica', '', down ? 'bad' : 'net');
+        }
+      });
+      if (down) o += `<rect x="${x}" y="${rowTop}" width="${colW}" height="${rows - 40}" rx="8" fill="url(#hatch)" stroke="var(--red)" stroke-width="2"/><text x="${x + colW / 2}" y="${rowTop + 16}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--red)" paint-order="stroke" stroke="var(--bg)" stroke-width="4">AZ ${az} DOWN</text>`;
+    });
+  }
+  const sx = narrow ? 12 : W - side, sy = narrow ? H - 118 : top, sw = narrow ? (W - 36) / 3 : side - 12;
+  const svc = [];
+  if (S.bucket) svc.push(['S3 bucket', S.bucket.life ? `IA ${S.bucket.life.ia}d · Glacier ${S.bucket.life.gl}d` : (S.bucket.block ? 'private' : 'public!')]);
+  S.topics.forEach(t => svc.push(['SNS topic', esc(t)]));
+  S.queues.forEach(q => svc.push(['SQS queue', esc(q) + (S.subs.some(x => x.q === q) ? ' ✓ subscribed' : '')]));
+  if (!svc.length) o += `<text x="${sx + (narrow ? (W - 24) / 2 : sw / 2)}" y="${sy + 20}" text-anchor="middle" font-size="12" fill="var(--mute)">S3, SNS and SQS appear here</text>`;
+  svc.slice(0, narrow ? 3 : 6).forEach(([a, b], i) => {
+    const x = narrow ? sx + i * (sw + 6) : sx, y = narrow ? sy : sy + i * 54;
+    o += box(x, y, sw, 44, a, b, 'net');
+  });
+  svg.innerHTML = o;
+}
+const ro = new ResizeObserver(draw); ro.observe(svg);
+
+function render() { renderTut(); renderConsole(); renderStatus(); draw(); save(); }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.lab) { S.lab = +t.dataset.lab; const c = curStep(); if (c) S.tab = c.tab; return render(); }
+  if (t.dataset.tab) { S.tab = t.dataset.tab; return render(); }
+  if (t.id === 'showme') { const c = curStep(); if (c) { S.tab = c.tab; pre = {tab: c.tab, step: c}; say('Filled in for you. Check the values, then press the highlighted button.'); render(); } return; }
+  if (t.id === 'nextlab') { S.lab = Math.min(LABS.length - 1, S.lab + 1); const c = curStep(); if (c) S.tab = c.tab; return render(); }
+  if (t.id === 'reset') { S = blank(); say('Everything reset. Start again from Lab 1.'); return render(); }
+  if (ACT[t.id]) { const before = curStep(); ACT[t.id](); const after = curStep(); if (before && before !== after && before.ok()) { const m = $('#log').textContent; say(m + ' Step complete.', 'good'); } if (after && after.tab === S.tab && before === after && after.fill && typeof after.fill === 'function') pre = {tab: S.tab, step: after}; render(); }
+});
+render();
+}
+</script>
+</body>
+</html>
